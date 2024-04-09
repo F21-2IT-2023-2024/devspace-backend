@@ -35,7 +35,7 @@ class UserResource(Resource):
         cql = "SELECT * FROM Devspace.Users WHERE UserID=%s"
         user = session.execute(cql, [uuid.UUID(user_id)]).one()
         if user:
-            return {'UserID': str(user.UserID), 'Username': user.Username, 'Email': user.Email}, 200
+            return {'UserID': str(user.userid), 'Username': user.username, 'Email': user.email}, 200
         else:
             return {'message': 'User not found'}, 404
 
@@ -73,10 +73,10 @@ class SnippetResource(Resource):
         cql = "SELECT * FROM Devspace.Snippets WHERE SnippetID=%s"
         snippet = session.execute(cql, [uuid.UUID(snippet_id)]).one()
         if snippet:
-            return {'SnippetID': str(snippet.SnippetID), 'UserID': str(snippet.UserID), 'Title': snippet.Title, 'Content': snippet.Content, 'Language': snippet.Language, 'CreatedAt': snippet.CreatedAt, 'UpdatedAt': snippet.UpdatedAt}, 200
+            return {'SnippetID': str(snippet.snippetid), 'UserID': str(snippet.userid), 'Title': snippet.title, 'Content': snippet.Content, 'Language': snippet.Language, 'CreatedAt': snippet.CreatedAt, 'UpdatedAt': snippet.UpdatedAt}, 200
         else:
             return {'message': 'Snippet not found'}, 404
-
+    
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('UserID', required=True)
@@ -86,12 +86,10 @@ class SnippetResource(Resource):
         args = parser.parse_args()
 
         snippet_id = uuid.uuid4()
-        created_at = datetime.now()
-        updated_at = datetime.now()
         cql = "INSERT INTO Devspace.Snippets (SnippetID, UserID, Title, Content, Language, CreatedAt, UpdatedAt) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        session.execute(cql, (snippet_id, uuid.UUID(args['UserID']), args['Title'], args['Content'], args['Language'], created_at, updated_at))
+        session.execute(cql, (snippet_id, uuid.UUID(args['UserID']), args['Title'], args['Content'], args['Language'], datetime.now(), datetime.now()))
         return {'message': 'Snippet created successfully', 'SnippetID': str(snippet_id)}, 201
-
+    
     def put(self, snippet_id):
         parser = reqparse.RequestParser()
         parser.add_argument('UserID', required=True)
@@ -100,11 +98,10 @@ class SnippetResource(Resource):
         parser.add_argument('Language', required=True)
         args = parser.parse_args()
 
-        updated_at = datetime.now()
         cql = "UPDATE Devspace.Snippets SET UserID=%s, Title=%s, Content=%s, Language=%s, UpdatedAt=%s WHERE SnippetID=%s"
-        session.execute(cql, (uuid.UUID(args['UserID']), args['Title'], args['Content'], args['Language'], updated_at, uuid.UUID(snippet_id)))
+        session.execute(cql, (uuid.UUID(args['UserID']), args['Title'], args['Content'], args['Language'], datetime.now(), uuid.UUID(snippet_id)))
         return {'message': 'Snippet updated successfully'}, 200
-
+    
     def delete(self, snippet_id):
         cql = "DELETE FROM Devspace.Snippets WHERE SnippetID=%s"
         session.execute(cql, [uuid.UUID(snippet_id)])
@@ -115,43 +112,43 @@ class TagResource(Resource):
         cql = "SELECT * FROM Devspace.Tags WHERE TagID=%s"
         tag = session.execute(cql, [uuid.UUID(tag_id)]).one()
         if tag:
-            return {'TagID': str(tag.TagID), 'TagName': tag.TagName}, 200
+            return {'TagID': str(tag.tagid), 'Name': tag.name}, 200
         else:
             return {'message': 'Tag not found'}, 404
-
+    
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('TagName', required=True)
+        parser.add_argument('Name', required=True)
         args = parser.parse_args()
 
         tag_id = uuid.uuid4()
-        cql = "INSERT INTO Devspace.Tags (TagID, TagName) VALUES (%s, %s)"
-        session.execute(cql, (tag_id, args['TagName']))
+        cql = "INSERT INTO Devspace.Tags (TagID, Name) VALUES (%s, %s)"
+        session.execute(cql, (tag_id, args['Name']))
         return {'message': 'Tag created successfully', 'TagID': str(tag_id)}, 201
-
+    
     def put(self, tag_id):
         parser = reqparse.RequestParser()
-        parser.add_argument('TagName', required=True)
+        parser.add_argument('Name', required=True)
         args = parser.parse_args()
 
-        cql = "UPDATE Devspace.Tags SET TagName=%s WHERE TagID=%s"
-        session.execute(cql, (args['TagName'], uuid.UUID(tag_id)))
+        cql = "UPDATE Devspace.Tags SET Name=%s WHERE TagID=%s"
+        session.execute(cql, (args['Name'], uuid.UUID(tag_id)))
         return {'message': 'Tag updated successfully'}, 200
-
+    
     def delete(self, tag_id):
         cql = "DELETE FROM Devspace.Tags WHERE TagID=%s"
         session.execute(cql, [uuid.UUID(tag_id)])
         return {'message': 'Tag deleted successfully'}, 200
-
+    
 class SnippetTagResource(Resource):
     def get(self, snippet_id, tag_id):
         cql = "SELECT * FROM Devspace.SnippetTags WHERE SnippetID=%s AND TagID=%s"
-        snippet_tag = session.execute(cql, [uuid.UUID(snippet_id), uuid.UUID(tag_id)]).one()
-        if snippet_tag:
-            return {'SnippetID': str(snippet_tag.SnippetID), 'TagID': str(snippet_tag.TagID)}, 200
+        snippettags = session.execute(cql, [uuid.UUID(snippet_id), uuid.UUID(tag_id)]).one()
+        if snippettags:
+            return {'SnippetID': str(snippettags.snippetid), 'TagID': str(snippettags.tagid)}, 200
         else:
             return {'message': 'SnippetTag not found'}, 404
-
+    
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('SnippetID', required=True)
@@ -161,21 +158,21 @@ class SnippetTagResource(Resource):
         cql = "INSERT INTO Devspace.SnippetTags (SnippetID, TagID) VALUES (%s, %s)"
         session.execute(cql, (uuid.UUID(args['SnippetID']), uuid.UUID(args['TagID'])))
         return {'message': 'SnippetTag created successfully'}, 201
-
+    
     def delete(self, snippet_id, tag_id):
         cql = "DELETE FROM Devspace.SnippetTags WHERE SnippetID=%s AND TagID=%s"
         session.execute(cql, [uuid.UUID(snippet_id), uuid.UUID(tag_id)])
         return {'message': 'SnippetTag deleted successfully'}, 200
-
+    
 class InteractionResource(Resource):
     def get(self, interaction_id):
         cql = "SELECT * FROM Devspace.Interactions WHERE InteractionID=%s"
         interaction = session.execute(cql, [uuid.UUID(interaction_id)]).one()
         if interaction:
-            return {'InteractionID': str(interaction.InteractionID), 'SnippetID': str(interaction.SnippetID), 'UserID': str(interaction.UserID), 'Type': interaction.Type, 'CreatedAt': interaction.CreatedAt}, 200
+            return {'InteractionID': str(interaction.interactionid), 'SnippetID': str(interaction.snippetid), 'UserID': str(interaction.userid), 'Type': interaction.type, 'CreatedAt': interaction.createdat}, 200
         else:
             return {'message': 'Interaction not found'}, 404
-
+    
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('SnippetID', required=True)
@@ -184,22 +181,21 @@ class InteractionResource(Resource):
         args = parser.parse_args()
 
         interaction_id = uuid.uuid4()
-        created_at = datetime.now()
         cql = "INSERT INTO Devspace.Interactions (InteractionID, SnippetID, UserID, Type, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
-        session.execute(cql, (interaction_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Type'], created_at))
+        session.execute(cql, (interaction_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Type'], datetime.now()))
         return {'message': 'Interaction created successfully', 'InteractionID': str(interaction_id)}, 201
-
+    
     def delete(self, interaction_id):
         cql = "DELETE FROM Devspace.Interactions WHERE InteractionID=%s"
         session.execute(cql, [uuid.UUID(interaction_id)])
         return {'message': 'Interaction deleted successfully'}, 200
-
+    
 class SnippetBountyResource(Resource):
     def get(self, bounty_id):
         cql = "SELECT * FROM Devspace.SnippetBounties WHERE BountyID=%s"
         bounty = session.execute(cql, [uuid.UUID(bounty_id)]).one()
         if bounty:
-            return {'BountyID': str(bounty.BountyID), 'SnippetID': str(bounty.SnippetID), 'UserID': str(bounty.UserID), 'Description': bounty.Description, 'Reward': bounty.Reward, 'Status': bounty.Status, 'CreatedAt': bounty.CreatedAt, 'DueDate': bounty.DueDate}, 200
+            return {'BountyID': str(bounty.bountyid), 'SnippetID': str(bounty.snippetid), 'UserID': str(bounty.userid), 'Amount': bounty.amount, 'CreatedAt': bounty.createdat}, 200
         else:
             return {'message': 'Bounty not found'}, 404
     
@@ -207,111 +203,77 @@ class SnippetBountyResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('SnippetID', required=True)
         parser.add_argument('UserID', required=True)
-        parser.add_argument('Description', required=True)
-        parser.add_argument('Reward', required=True)
-        parser.add_argument('Status', required=True)
-        parser.add_argument('DueDate', required=True)
+        parser.add_argument('Amount', required=True)
         args = parser.parse_args()
 
         bounty_id = uuid.uuid4()
-        created_at = datetime.now()
-        cql = "INSERT INTO Devspace.SnippetBounties (BountyID, SnippetID, UserID, Description, Reward, Status, CreatedAt, DueDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        session.execute(cql, (bounty_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Description'], args['Reward'], args['Status'], created_at, args['DueDate']))
+        cql = "INSERT INTO Devspace.SnippetBounties (BountyID, SnippetID, UserID, Amount, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
+        session.execute(cql, (bounty_id, uuid.UUID, args['SnippetID'], uuid.UUID(args['UserID']), args['Amount'], datetime.now()))
         return {'message': 'Bounty created successfully', 'BountyID': str(bounty_id)}, 201
-    
-    def put(self, bounty_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('SnippetID', required=True)
-        parser.add_argument('UserID', required=True)
-        parser.add_argument('Description', required=True)
-        parser.add_argument('Reward', required=True)
-        parser.add_argument('Status', required=True)
-        parser.add_argument('DueDate', required=True)
-        args = parser.parse_args()
-
-        cql = "UPDATE Devspace.SnippetBounties SET SnippetID=%s, UserID=%s, Description=%s, Reward=%s, Status=%s, DueDate=%s WHERE BountyID=%s"
-
-        session.execute(cql, (uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Description'], args['Reward'], args['Status'], args['DueDate'], uuid.UUID(bounty_id)))
-        return {'message': 'Bounty updated successfully'}, 200
     
     def delete(self, bounty_id):
         cql = "DELETE FROM Devspace.SnippetBounties WHERE BountyID=%s"
         session.execute(cql, [uuid.UUID(bounty_id)])
-
+        return {'message': 'Bounty deleted successfully'}, 200
+    
 class BugBountyResource(Resource):
     def get(self, bounty_id):
         cql = "SELECT * FROM Devspace.BugBounties WHERE BountyID=%s"
         bounty = session.execute(cql, [uuid.UUID(bounty_id)]).one()
         if bounty:
-            return {'BountyID': str(bounty.BountyID), 'UserID': str(bounty.UserID), 'Description': bounty.Description, 'Reward': bounty.Reward, 'Status': bounty.Status, 'CreatedAt': bounty.CreatedAt, 'DueDate': bounty.DueDate}, 200
+            return {'BountyID': str(bounty.bountyid), 'SnippetID': str(bounty.snippetid), 'UserID': str(bounty.userid), 'Amount': bounty.amount, 'CreatedAt': bounty.createdat}, 200
         else:
             return {'message': 'Bounty not found'}, 404
-    
+        
     def post(self):
         parser = reqparse.RequestParser()
+        parser.add_argument('SnippetID', required=True)
         parser.add_argument('UserID', required=True)
-        parser.add_argument('Description', required=True)
-        parser.add_argument('Reward', required=True)
-        parser.add_argument('Status', required=True)
-        parser.add_argument('DueDate', required=True)
+        parser.add_argument('Amount', required=True)
         args = parser.parse_args()
 
         bounty_id = uuid.uuid4()
-        created_at = datetime.now()
-        cql = "INSERT INTO Devspace.BugBounties (BountyID, UserID, Description, Reward, Status, CreatedAt, DueDate) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        session.execute(cql, (bounty_id, uuid.UUID(args['UserID']), args['Description'], args['Reward'], args['Status'], created_at, args['DueDate']))
+        cql = "INSERT INTO Devspace.BugBounties (BountyID, SnippetID, UserID, Amount, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
+        session.execute(cql, (bounty_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Amount'], datetime.now()))
         return {'message': 'Bounty created successfully', 'BountyID': str(bounty_id)}, 201
-    
-    def put(self, bounty_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('UserID', required=True)
-        parser.add_argument('Description', required=True)
-        parser.add_argument('Reward', required=True)
-        parser.add_argument('Status', required=True)
-        parser.add_argument('DueDate', required=True)
-        args = parser.parse_args()
 
-        cql = "UPDATE Devspace.BugBounties SET UserID=%s, Description=%s, Reward=%s, Status=%s, DueDate=%s WHERE BountyID=%s"
-
-        session.execute(cql, (uuid.UUID(args['UserID']), args['Description'], args['Reward'], args['Status'], args['DueDate'], uuid.UUID(bounty_id)))
-        return {'message': 'Bounty updated successfully'}, 200
-    
     def delete(self, bounty_id):
         cql = "DELETE FROM Devspace.BugBounties WHERE BountyID=%s"
         session.execute(cql, [uuid.UUID(bounty_id)])
-
+        return {'message': 'Bounty deleted successfully'}, 200
+    
 class ReportResource(Resource):
     def get(self, report_id):
         cql = "SELECT * FROM Devspace.Reports WHERE ReportID=%s"
         report = session.execute(cql, [uuid.UUID(report_id)]).one()
         if report:
-            return {'ReportID': str(report.ReportID), 'SnippetID': str(report.SnippetID), 'ReportedByUserID': str(report.ReportedByUserID), 'Reason': report.Reason, 'CreatedAt': report.CreatedAt}, 200
+            return {'ReportID': str(report.reportid), 'SnippetID': str(report.snippetid), 'UserID': str(report.userid), 'Reason': report.reason, 'CreatedAt': report.createdat}, 200
         else:
             return {'message': 'Report not found'}, 404
     
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('SnippetID', required=True)
-        parser.add_argument('ReportedByUserID', required=True)
+        parser.add_argument('UserID', required=True)
         parser.add_argument('Reason', required=True)
         args = parser.parse_args()
 
         report_id = uuid.uuid4()
-        created_at = datetime.now()
-        cql = "INSERT INTO Devspace.Reports (ReportID, SnippetID, ReportedByUserID, Reason, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
-        session.execute(cql, (report_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['ReportedByUserID']), args['Reason'], created_at))
+        cql = "INSERT INTO Devspace.Reports (ReportID, SnippetID, UserID, Reason, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
+        session.execute(cql, (report_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Reason'], datetime.now()))
         return {'message': 'Report created successfully', 'ReportID': str(report_id)}, 201
     
     def delete(self, report_id):
         cql = "DELETE FROM Devspace.Reports WHERE ReportID=%s"
         session.execute(cql, [uuid.UUID(report_id)])
-
+        return {'message': 'Report deleted successfully'}, 200
+    
 class CommentResource(Resource):
     def get(self, comment_id):
         cql = "SELECT * FROM Devspace.Comments WHERE CommentID=%s"
         comment = session.execute(cql, [uuid.UUID(comment_id)]).one()
         if comment:
-            return {'CommentID': str(comment.CommentID), 'SnippetID': str(comment.SnippetID), 'UserID': str(comment.UserID), 'Content': comment.Content, 'CreatedAt': comment.CreatedAt}, 200
+            return {'CommentID': str(comment.commentid), 'SnippetID': str(comment.snippetid), 'UserID': str(comment.userid), 'Content': comment.content, 'CreatedAt': comment.createdat}, 200
         else:
             return {'message': 'Comment not found'}, 404
     
@@ -323,25 +285,14 @@ class CommentResource(Resource):
         args = parser.parse_args()
 
         comment_id = uuid.uuid4()
-        created_at = datetime.now()
         cql = "INSERT INTO Devspace.Comments (CommentID, SnippetID, UserID, Content, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
-        session.execute(cql, (comment_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Content'], created_at))
+        session.execute(cql, (comment_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Content'], datetime.now()))
         return {'message': 'Comment created successfully', 'CommentID': str(comment_id)}, 201
-    
-    def put(self, comment_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('SnippetID', required=True)
-        parser.add_argument('UserID', required=True)
-        parser.add_argument('Content', required=True)
-        args = parser.parse_args()
-
-        cql = "UPDATE Devspace.Comments SET SnippetID=%s, UserID=%s, Content=%s WHERE CommentID=%s"
-        session.execute(cql, (uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Content'], uuid.UUID(comment_id)))
-        return {'message': 'Comment updated successfully'}, 200
     
     def delete(self, comment_id):
         cql = "DELETE FROM Devspace.Comments WHERE CommentID=%s"
         session.execute(cql, [uuid.UUID(comment_id)])
+        return {'message': 'Comment deleted successfully'}, 200
 
 class ContentFilter():
     def content_safe(content):

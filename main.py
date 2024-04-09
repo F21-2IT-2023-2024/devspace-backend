@@ -32,7 +32,7 @@ api = swagger.docs(Api(app), apiVersion='0.1')
 
 class UserResource(Resource):
     def get(self, user_id):
-        cql = "SELECT * FROM Users WHERE UserID=%s"
+        cql = "SELECT * FROM Devspace.Users WHERE UserID=%s"
         user = session.execute(cql, [uuid.UUID(user_id)]).one()
         if user:
             return {'UserID': str(user.UserID), 'Username': user.Username, 'Email': user.Email}, 200

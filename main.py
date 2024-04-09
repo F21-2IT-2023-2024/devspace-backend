@@ -59,7 +59,7 @@ class UserResource(Resource):
         parser.add_argument('PasswordHash', required=True)
         args = parser.parse_args()
 
-        cql = "UPDATE Users SET Devspace.Username=%s, Email=%s, PasswordHash=%s WHERE UserID=%s"
+        cql = "UPDATE Devspace.Users SET Username=%s, Email=%s, PasswordHash=%s WHERE UserID=%s"
         session.execute(cql, (args['Username'], args['Email'], args['PasswordHash'], uuid.UUID(user_id)))
         return {'message': 'User updated successfully'}, 200
 
@@ -71,9 +71,10 @@ class UserResource(Resource):
 class SnippetResource(Resource):
     def get(self, snippet_id):
         cql = "SELECT * FROM Devspace.Snippets WHERE SnippetID=%s"
+        print(snippet_id)
         snippet = session.execute(cql, [uuid.UUID(snippet_id)]).one()
         if snippet:
-            return {'SnippetID': str(snippet.snippetid), 'UserID': str(snippet.userid), 'Title': snippet.title, 'Content': snippet.Content, 'Language': snippet.Language, 'CreatedAt': snippet.CreatedAt, 'UpdatedAt': snippet.UpdatedAt}, 200
+            return {'SnippetID': str(snippet.snippetid), 'UserID': str(snippet.userid), 'Title': snippet.title, 'Content': snippet.content, 'Language': snippet.language, 'CreatedAt': str(snippet.createdat), 'UpdatedAt': str(snippet.updatedat)}, 200
         else:
             return {'message': 'Snippet not found'}, 404
     

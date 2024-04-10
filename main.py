@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, redirect, send_file
 from flask_restful import Resource, Api, reqparse
-from flask_restful_swagger import swagger
+from flask_swagger_ui import get_swaggerui_blueprint
 import uuid
 from datetime import datetime
 from cassandra.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
@@ -13,6 +13,17 @@ _ = load_dotenv(find_dotenv())
 
 openai.api_key=os.getenv("OPENAI_API_KEY")
 client = openai.OpenAI()
+
+SWAGGER_URL = '/api/docs'
+API_URL = 'http://127.0.0.1:5000/swagger'
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "DevSpace"
+    },
+)
 
 # scylla cloud connection
 profile = ExecutionProfile(load_balancing_policy=TokenAwarePolicy(DCAwareRoundRobinPolicy(local_dc='GCE_US_EAST_1')))
@@ -28,7 +39,12 @@ session = cluster.connect()
 print('Connected to cluster %s' % cluster.metadata.cluster_name)
 
 app = Flask(__name__)
-api = swagger.docs(Api(app), apiVersion='0.1')
+api = Api(app)
+
+class Swagger(Resource):
+    def get(self):
+        return send_file('swagger.json')
+        
 
 class UserResource(Resource):
     def get(self, user_id):
@@ -113,7 +129,7 @@ class TagResource(Resource):
         cql = "SELECT * FROM Devspace.Tags WHERE TagID=%s"
         tag = session.execute(cql, [uuid.UUID(tag_id)]).one()
         if tag:
-            return {'TagID': str(tag.tagid), 'Name': tag.name}, 200
+            return {'TagID': str(tag.tagid), 'Name': tag.tagname}, 200
         else:
             return {'message': 'Tag not found'}, 404
     
@@ -123,7 +139,7 @@ class TagResource(Resource):
         args = parser.parse_args()
 
         tag_id = uuid.uuid4()
-        cql = "INSERT INTO Devspace.Tags (TagID, Name) VALUES (%s, %s)"
+        cql = "INSERT INTO Devspace.Tags (TagID, TagName) VALUES (%s, %s)"
         session.execute(cql, (tag_id, args['Name']))
         return {'message': 'Tag created successfully', 'TagID': str(tag_id)}, 201
     
@@ -132,7 +148,7 @@ class TagResource(Resource):
         parser.add_argument('Name', required=True)
         args = parser.parse_args()
 
-        cql = "UPDATE Devspace.Tags SET Name=%s WHERE TagID=%s"
+        cql = "UPDATE Devspace.Tags SET TagName=%s WHERE TagID=%s"
         session.execute(cql, (args['Name'], uuid.UUID(tag_id)))
         return {'message': 'Tag updated successfully'}, 200
     
@@ -170,7 +186,7 @@ class InteractionResource(Resource):
         cql = "SELECT * FROM Devspace.Interactions WHERE InteractionID=%s"
         interaction = session.execute(cql, [uuid.UUID(interaction_id)]).one()
         if interaction:
-            return {'InteractionID': str(interaction.interactionid), 'SnippetID': str(interaction.snippetid), 'UserID': str(interaction.userid), 'Type': interaction.type, 'CreatedAt': interaction.createdat}, 200
+            return {'InteractionID': str(interaction.interactionid), 'SnippetID': str(interaction.snippetid), 'UserID': str(interaction.userid), 'Type': interaction.type, 'CreatedAt': str(interaction.createdat)}, 200
         else:
             return {'message': 'Interaction not found'}, 404
     
@@ -209,7 +225,7 @@ class SnippetBountyResource(Resource):
 
         bounty_id = uuid.uuid4()
         cql = "INSERT INTO Devspace.SnippetBounties (BountyID, SnippetID, UserID, Amount, CreatedAt) VALUES (%s, %s, %s, %s, %s)"
-        session.execute(cql, (bounty_id, uuid.UUID, args['SnippetID'], uuid.UUID(args['UserID']), args['Amount'], datetime.now()))
+        session.execute(cql, (bounty_id, uuid.UUID(args['SnippetID']), uuid.UUID(args['UserID']), args['Amount'], datetime.now()))
         return {'message': 'Bounty created successfully', 'BountyID': str(bounty_id)}, 201
     
     def delete(self, bounty_id):
@@ -301,6 +317,7 @@ class ContentFilter():
         response = moderation.model_dump()
         return not response['results'][0]['flagged']
 
+api.add_resource(Swagger, '/swagger')
 api.add_resource(UserResource, '/users', '/users/<string:user_id>')
 api.add_resource(SnippetResource, '/snippets', '/snippets/<string:snippet_id>')
 api.add_resource(TagResource, '/tags', '/tags/<string:tag_id>')
@@ -312,4 +329,5 @@ api.add_resource(ReportResource, '/reports', '/reports/<string:report_id>')
 api.add_resource(CommentResource, '/comments', '/comments/<string:comment_id>')
 
 if __name__ == '__main__':
+    app.register_blueprint(swaggerui_blueprint)
     app.run(debug=True)

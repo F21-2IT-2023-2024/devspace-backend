@@ -5,10 +5,6 @@ import json
 # Base URL of the Flask application
 BASE_URL = "http://127.0.0.1:5000"
 
-# api code
-
-# Functions to test the API sorted in groups
-
 def test_create_user():
     # Create a new user
     response = requests.post(BASE_URL + "/users", json={"Username": "test", "Email": "test@gmail.com", "PasswordHash": "12345678"})

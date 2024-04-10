@@ -1,0 +1,229 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "DevSpace API",
+        "description": "API for managing users, snippets, tags, and more in the DevSpace application.",
+        "version": "1.0.0"
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/users": {
+            "post": {
+                "summary": "Create a new user",
+                "description": "Create a new user with a username, email, and password hash.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User object that needs to be added",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully"
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/users/{user_id}": {
+            "get": {
+                "summary": "Get user by user ID",
+                "description": "Returns a single user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "description": "ID of user to return",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update an existing user",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "User object that needs to be updated",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Deletes a user",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/snippets": {
+            "post": {
+                "summary": "Create a new snippet",
+                "description": "",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Snippet object that needs to be added",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Snippet"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Snippet created successfully"
+                    },
+                    "default": {
+                        "description": "Unexpected error"
+                    }
+                }
+            }
+        },
+        "/snippets/{snippet_id}": {
+            "get": {
+                "summary": "Find snippet by ID",
+                "description": "Returns a single snippet",
+                "parameters": [
+                    {
+                        "name": "snippet_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Snippet"
+                        }
+                    },
+                    "404": {
+                        "description": "Snippet not found"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "User": {
+            "type": "object",
+            "properties": {
+                "UserID": {
+                    "type": "string"
+                },
+                "Username": {
+                    "type": "string"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "PasswordHash": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Username",
+                "Email",
+                "PasswordHash"
+            ]
+        },
+        "Snippet": {
+            "type": "object",
+            "properties": {
+                "SnippetID": {
+                    "type": "string"
+                },
+                "UserID": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                },
+                "Content": {
+                    "type": "string"
+                },
+                "Language": {
+                    "type": "string"
+                },
+                "CreatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "required": [
+                "UserID",
+                "Title",
+                "Content",
+                "Language"
+            ]
+        }
+    }
+}

@@ -2,10 +2,9 @@
     "swagger": "2.0",
     "info": {
         "title": "DevSpace API",
-        "description": "API for managing users, snippets, tags, and more in the DevSpace application.",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "description": "API for managing users, snippets, tags, interactions, bounties, reports, and comments in DevSpace."
     },
-    "host": "localhost:5000",
     "basePath": "/",
     "schemes": [
         "http"
@@ -18,91 +17,136 @@
     ],
     "paths": {
         "/users": {
-            "post": {
-                "summary": "Create a new user",
-                "description": "Create a new user with a username, email, and password hash.",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "User object that needs to be added",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/User"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "User created successfully"
-                    },
-                    "default": {
-                        "description": "Unexpected error"
-                    }
-                }
-            }
-        },
-        "/users/{user_id}": {
             "get": {
-                "summary": "Get user by user ID",
-                "description": "Returns a single user",
+                "summary": "Get a user by id",
                 "parameters": [
                     {
                         "name": "user_id",
-                        "in": "path",
-                        "description": "ID of user to return",
+                        "in": "query",
+                        "description": "The id of the user to get",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "User found",
                         "schema": {
-                            "$ref": "#/definitions/User"
+                            "type": "object",
+                            "properties": {
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Username": {
+                                    "type": "string"
+                                },
+                                "Email": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "404": {
                         "description": "User not found"
                     }
-                }
+                },
+                "tags": [
+                    "Users"
+                ]
             },
-            "put": {
-                "summary": "Update an existing user",
-                "description": "",
+            "post": {
+                "summary": "Create a new user",
                 "parameters": [
                     {
-                        "name": "user_id",
-                        "in": "path",
+                        "name": "Username",
+                        "in": "query",
+                        "description": "The username of the user to create",
                         "required": true,
                         "type": "string"
                     },
                     {
-                        "in": "body",
-                        "name": "body",
-                        "description": "User object that needs to be updated",
+                        "name": "Email",
+                        "in": "query",
+                        "description": "The email of the user to create",
                         "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "PasswordHash",
+                        "in": "query",
+                        "description": "The password hash of the user to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
                         "schema": {
-                            "$ref": "#/definitions/User"
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                }
+                            }
                         }
+                    }
+                },
+                "tags": [
+                    "Users"
+                ]
+            },
+            "put": {
+                "summary": "Update a user by id",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "The id of the user to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Username",
+                        "in": "query",
+                        "description": "The username of the user to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Email",
+                        "in": "query",
+                        "description": "The email of the user to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "PasswordHash",
+                        "in": "query",
+                        "description": "The password hash of the user to update",
+                        "required": true,
+                        "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "User updated successfully"
-                    },
-                    "404": {
-                        "description": "User not found"
                     }
-                }
+                },
+                "tags": [
+                    "Users"
+                ]
             },
             "delete": {
-                "summary": "Deletes a user",
-                "description": "",
+                "summary": "Delete a user by id",
                 "parameters": [
                     {
                         "name": "user_id",
-                        "in": "path",
+                        "in": "query",
+                        "description": "The id of the user to delete",
                         "required": true,
                         "type": "string"
                     }
@@ -110,120 +154,982 @@
                 "responses": {
                     "200": {
                         "description": "User deleted successfully"
-                    },
-                    "404": {
-                        "description": "User not found"
                     }
-                }
+                },
+                "tags": [
+                    "Users"
+                ]
             }
         },
         "/snippets": {
-            "post": {
-                "summary": "Create a new snippet",
-                "description": "",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "body",
-                        "description": "Snippet object that needs to be added",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/Snippet"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Snippet created successfully"
-                    },
-                    "default": {
-                        "description": "Unexpected error"
-                    }
-                }
-            }
-        },
-        "/snippets/{snippet_id}": {
             "get": {
-                "summary": "Find snippet by ID",
-                "description": "Returns a single snippet",
+                "summary": "Get a snippet by id",
                 "parameters": [
                     {
                         "name": "snippet_id",
-                        "in": "path",
+                        "in": "query",
+                        "description": "The id of the snippet to get",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "successful operation",
+                        "description": "Snippet found",
                         "schema": {
-                            "$ref": "#/definitions/Snippet"
+                            "type": "object",
+                            "properties": {
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Title": {
+                                    "type": "string"
+                                },
+                                "Content": {
+                                    "type": "string"
+                                },
+                                "Language": {
+                                    "type": "string"
+                                },
+                                "CreatedAt": {
+                                    "type": "string"
+                                },
+                                "UpdatedAt": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "404": {
                         "description": "Snippet not found"
                     }
-                }
+                },
+                "tags": [
+                    "Snippets"
+                ]
+            },
+            "post": {
+                "summary": "Create a new snippet",
+                "parameters": [
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user who created the snippet",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Title",
+                        "in": "query",
+                        "description": "The title of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Content",
+                        "in": "query",
+                        "description": "The content of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Language",
+                        "in": "query",
+                        "description": "The language of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Snippet created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "SnippetID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Snippets"
+                ]
+            },
+            "put": {
+                "summary": "Update a snippet by id",
+                "parameters": [
+                    {
+                        "name": "snippet_id",
+                        "in": "query",
+                        "description": "The id of the snippet to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user who created the snippet",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Title",
+                        "in": "query",
+                        "description": "The title of the snippet to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Content",
+                        "in": "query",
+                        "description": "The content of the snippet to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Language",
+                        "in": "query",
+                        "description": "The language of the snippet to update",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Snippet updated successfully"
+                    }
+                },
+                "tags": [
+                    "Snippets"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a snippet by id",
+                "parameters": [
+                    {
+                        "name": "snippet_id",
+                        "in": "query",
+                        "description": "The id of the snippet to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Snippet deleted successfully"
+                    }
+                },
+                "tags": [
+                    "Snippets"
+                ]
+            }
+        },
+        "/tags": {
+            "get": {
+                "summary": "Get a tag by id",
+                "parameters": [
+                    {
+                        "name": "tag_id",
+                        "in": "query",
+                        "description": "The id of the tag to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "TagID": {
+                                    "type": "string"
+                                },
+                                "Name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tag not found"
+                    }
+                },
+                "tags": [
+                    "Tags"
+                ]
+            },
+            "post": {
+                "summary": "Create a new tag",
+                "parameters": [
+                    {
+                        "name": "Name",
+                        "in": "query",
+                        "description": "The name of the tag to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "TagID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Tags"
+                ]
+            },
+            "put": {
+                "summary": "Update a tag by id",
+                "parameters": [
+                    {
+                        "name": "tag_id",
+                        "in": "query",
+                        "description": "The id of the tag to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Name",
+                        "in": "query",
+                        "description": "The name of the tag to update",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag updated successfully"
+                    }
+                },
+                "tags": [
+                    "Tags"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a tag by id",
+                "parameters": [
+                    {
+                        "name": "tag_id",
+                        "in": "query",
+                        "description": "The id of the tag to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag deleted successfully"
+                    }
+                },
+                "tags": [
+                    "Tags"
+                ]
+            }
+        },
+        "/snippettags": {
+            "get": {
+                "summary": "Get a snippettags by id",
+                "parameters": [
+                    {
+                        "name": "snippet_id",
+                        "in": "query",
+                        "description": "The id of the snippet to get",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "tag_id",
+                        "in": "query",
+                        "description": "The id of the tag to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Snippettags found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "TagID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Snippettags not found"
+                    }
+                },
+                "tags": [
+                    "Snippettags"
+                ]
+            },
+            "post": {
+                "summary": "Create a new snippettags",
+                "parameters": [
+                    {
+                        "name": "SnippetID",
+                        "in": "query",
+                        "description": "The id of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "TagID",
+                        "in": "query",
+                        "description": "The id of the tag to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Snippettags created successfully"
+                    }
+                },
+                "tags": [
+                    "Snippettags"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a snippettags by id",
+                "parameters": [
+                    {
+                        "name": "snippet_id",
+                        "in": "query",
+                        "description": "The id of the snippet to delete",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "tag_id",
+                        "in": "query",
+                        "description": "The id of the tag to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Snippettags deleted successfully"
+                    }
+                },
+                "tags": [
+                    "Snippettags"
+                ]
+            }
+        },
+        "/interactions": {
+            "get": {
+                "summary": "Get a interaction by id",
+                "parameters": [
+                    {
+                        "name": "interaction_id",
+                        "in": "query",
+                        "description": "The id of the interaction to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Interaction found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "InteractionID": {
+                                    "type": "string"
+                                },
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Type": {
+                                    "type": "string"
+                                },
+                                "CreatedAt": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Interaction not found"
+                    }
+                },
+                "tags": [
+                    "Interactions"
+                ]
+            },
+            "post": {
+                "summary": "Create a new interaction",
+                "parameters": [
+                    {
+                        "name": "SnippetID",
+                        "in": "query",
+                        "description": "The id of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Type",
+                        "in": "query",
+                        "description": "The type of the interaction to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Interaction created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "InteractionID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Interactions"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a interaction by id",
+                "parameters": [
+                    {
+                        "name": "interaction_id",
+                        "in": "query",
+                        "description": "The id of the interaction to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Interaction deleted successfully"
+                    }
+                },
+                "tags": [
+                    "Interactions"
+                ]
+            }
+        },
+        "/snippetbounties": {
+            "get": {
+                "summary": "Get a snippetbounties by id",
+                "parameters": [
+                    {
+                        "name": "bounty_id",
+                        "in": "query",
+                        "description": "The id of the bounty to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bounty found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "BountyID": {
+                                    "type": "string"
+                                },
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Amount": {
+                                    "type": "string"
+                                },
+                                "CreatedAt": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bounty not found"
+                    }
+                },
+                "tags": [
+                    "SnippetBounties"
+                ]
+            },
+            "post": {
+                "summary": "Create a new snippetbounties",
+                "parameters": [
+                    {
+                        "name": "SnippetID",
+                        "in": "query",
+                        "description": "The id of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Amount",
+                        "in": "query",
+                        "description": "The amount of the bounty to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Bounty created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "BountyID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "SnippetBounties"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a snippetbounties by id",
+                "parameters": [
+                    {
+                        "name": "bounty_id",
+                        "in": "query",
+                        "description": "The id of the bounty to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bounty deleted successfully"
+                    }
+                },
+                "tags": [
+                    "SnippetBounties"
+                ]
+            }
+        },
+        "/bugbounties": {
+            "get": {
+                "summary": "Get a bugbounties by id",
+                "parameters": [
+                    {
+                        "name": "bounty_id",
+                        "in": "query",
+                        "description": "The id of the bounty to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bounty found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "BountyID": {
+                                    "type": "string"
+                                },
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Amount": {
+                                    "type": "string"
+                                },
+                                "CreatedAt": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bounty not found"
+                    }
+                },
+                "tags": [
+                    "BugBounties"
+                ]
+            },
+            "post": {
+                "summary": "Create a new bugbounties",
+                "parameters": [
+                    {
+                        "name": "SnippetID",
+                        "in": "query",
+                        "description": "The id of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Amount",
+                        "in": "query",
+                        "description": "The amount of the bounty to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Bounty created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "BountyID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "BugBounties"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a bugbounties by id",
+                "parameters": [
+                    {
+                        "name": "bounty_id",
+                        "in": "query",
+                        "description": "The id of the bounty to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bounty deleted successfully"
+                    }
+                },
+                "tags": [
+                    "BugBounties"
+                ]
+            }
+        },
+        "/reports": {
+            "get": {
+                "summary": "Get a report by id",
+                "parameters": [
+                    {
+                        "name": "report_id",
+                        "in": "query",
+                        "description": "The id of the report to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Report found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "ReportID": {
+                                    "type": "string"
+                                },
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Reason": {
+                                    "type": "string"
+                                },
+                                "CreatedAt": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Report not found"
+                    }
+                },
+                "tags": [
+                    "Reports"
+                ]
+            },
+            "post": {
+                "summary": "Create a new report",
+                "parameters": [
+                    {
+                        "name": "SnippetID",
+                        "in": "query",
+                        "description": "The id of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Reason",
+                        "in": "query",
+                        "description": "The reason of the report to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Report created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "ReportID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Reports"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a report by id",
+                "parameters": [
+                    {
+                        "name": "report_id",
+                        "in": "query",
+                        "description": "The id of the report to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Report deleted successfully"
+                    }
+                },
+                "tags": [
+                    "Reports"
+                ]
+            }
+        },
+        "/comments": {
+            "get": {
+                "summary": "Get a comment by id",
+                "parameters": [
+                    {
+                        "name": "comment_id",
+                        "in": "query",
+                        "description": "The id of the comment to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "CommentID": {
+                                    "type": "string"
+                                },
+                                "SnippetID": {
+                                    "type": "string"
+                                },
+                                "UserID": {
+                                    "type": "string"
+                                },
+                                "Content": {
+                                    "type": "string"
+                                },
+                                "CreatedAt": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Comment not found"
+                    }
+                },
+                "tags": [
+                    "Comments"
+                ]
+            },
+            "post": {
+                "summary": "Create a new comment",
+                "parameters": [
+                    {
+                        "name": "SnippetID",
+                        "in": "query",
+                        "description": "The id of the snippet to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "UserID",
+                        "in": "query",
+                        "description": "The id of the user to create",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "Content",
+                        "in": "query",
+                        "description": "The content of the comment to create",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Comment created successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "CommentID": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Comments"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a comment by id",
+                "parameters": [
+                    {
+                        "name": "comment_id",
+                        "in": "query",
+                        "description": "The id of the comment to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment deleted successfully"
+                    }
+                },
+                "tags": [
+                    "Comments"
+                ]
             }
         }
     },
-    "definitions": {
-        "User": {
-            "type": "object",
-            "properties": {
-                "UserID": {
-                    "type": "string"
-                },
-                "Username": {
-                    "type": "string"
-                },
-                "Email": {
-                    "type": "string"
-                },
-                "PasswordHash": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "Username",
-                "Email",
-                "PasswordHash"
-            ]
+    "tags": [
+        {
+            "name": "Users",
+            "description": "Operations related to users"
         },
-        "Snippet": {
-            "type": "object",
-            "properties": {
-                "SnippetID": {
-                    "type": "string"
-                },
-                "UserID": {
-                    "type": "string"
-                },
-                "Title": {
-                    "type": "string"
-                },
-                "Content": {
-                    "type": "string"
-                },
-                "Language": {
-                    "type": "string"
-                },
-                "CreatedAt": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "UpdatedAt": {
-                    "type": "string",
-                    "format": "date-time"
-                }
-            },
-            "required": [
-                "UserID",
-                "Title",
-                "Content",
-                "Language"
-            ]
+        {
+            "name": "Snippets",
+            "description": "Operations related to snippets"
+        },
+        {
+            "name": "Tags",
+            "description": "Operations related to tags"
+        },
+        {
+            "name": "Snippettags",
+            "description": "Operations related to snippettags"
+        },
+        {
+            "name": "Interactions",
+            "description": "Operations related to interactions"
+        },
+        {
+            "name": "SnippetBounties",
+            "description": "Operations related to snippetbounties"
+        },
+        {
+            "name": "BugBounties",
+            "description": "Operations related to bugbounties"
+        },
+        {
+            "name": "Reports",
+            "description": "Operations related to reports"
+        },
+        {
+            "name": "Comments",
+            "description": "Operations related to comments"
         }
-    }
+    ]
 }
